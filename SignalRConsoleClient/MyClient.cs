@@ -12,7 +12,7 @@ namespace SignalRConsoleClient
     {
         private HubConnection connection;
 
-        public async void Initialize()
+        public async Task Initialize()
         {
             connection = new HubConnectionBuilder()
                 .WithUrl(new Uri("http://127.0.0.1:4444/myhub"))
@@ -21,7 +21,7 @@ namespace SignalRConsoleClient
             await connection.StartAsync();
         }
 
-        public async void SendRequest()
+        public async Task SendRequest()
         {
             var channel = Channel.CreateUnbounded<double>();
             await connection.SendAsync("SetDataQueueChannel", channel.Reader).ConfigureAwait(false);

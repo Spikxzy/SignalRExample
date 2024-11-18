@@ -2,14 +2,14 @@
 {
     public class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             Console.WriteLine("Press any key to start client");
             Console.ReadKey();
 
             var client = new MyClient();
-            client.Initialize();
-            client.SendRequest();
+            await client.Initialize();
+            await client.SendRequest();
 
             Console.WriteLine("Press any key to close client");
             Console.ReadKey();

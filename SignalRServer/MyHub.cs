@@ -30,6 +30,7 @@ namespace SignalRServer
                         Console.WriteLine($"Data received: {data}");
                     }
                 }
+                Console.WriteLine("Data queue finished, no more data to process");
             });
         }
 
