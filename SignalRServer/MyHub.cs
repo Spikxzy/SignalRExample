@@ -17,6 +17,7 @@ namespace SignalRServer
         public void SetDataQueueChannel(ChannelReader<double> dataQueueChannelReader)
         {
             _dataQueueChannel = dataQueueChannelReader;
+            Console.WriteLine($"Data queue received: [{_dataQueueChannel}]");
             _ = Task.Run(async () =>
             {
                 Console.WriteLine("Waiting for data");
