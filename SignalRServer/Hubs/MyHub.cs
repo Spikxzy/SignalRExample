@@ -38,7 +38,7 @@ namespace SignalRServer.Hubs
         public ChannelReader<double> GetProcessedDataChannel()
         {
             Console.WriteLine("[OUTGOING-CHANNEL] : Requested");
-            _processedDataChannel?.Writer.Complete();
+            _processedDataChannel?.Writer.TryComplete();
             _processedDataChannel = Channel.CreateUnbounded<double>();
             return _processedDataChannel.Reader;
         }

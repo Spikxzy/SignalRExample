@@ -1,0 +1,83 @@
+﻿@page "/signalr_client"
+@using BlazorWorker.BackgroundServiceFactory
+@using BlazorWorker.Core
+@using BlazorWorker.WorkerBackgroundService
+@using SignalRBlazorClient.SignalR.Services
+@inject IWorkerFactory WorkerFactory
+
+
+<PageTitle>SignalRClient</PageTitle>
+
+<h1>SignalR Client</h1>
+
+<div>
+    <button @onclick=RunWorker>Run SignalR with Web Worker</button>
+    <button @onclick="CloseConnection">Close Server Connection</button>
+</div>
+
+<div>
+    @foreach (var result in _results)
+    {
+        @result
+        <br />
+    }
+</div>
+
+@code {
+    readonly List<double> _results = new();
+    readonly List<IWorker> _workers = new();
+    IWorkerBackgroundService<ReceiverService>? _receiverService;
+    IWorkerBackgroundService<SenderService>? _senderService;
+    private EventHandle? _taskHandle;
+
+    private async void RunWorker()
+    {
+        var receiverWorker = await WorkerFactory.CreateAsync();
+        var senderWorker = await WorkerFactory.CreateAsync();
+
+        _workers.Add(receiverWorker);
+        _workers.Add(senderWorker);
+
+        _receiverService = await receiverWorker.CreateBackgroundServiceAsync<ReceiverService>();
+        _senderService = await senderWorker.CreateBackgroundServiceAsync<SenderService>();
+
+        _taskHandle = await _receiverService.RegisterEventListenerAsync<double>(nameof(ReceiverService.DataReceived), OnDataReceived);
+        await _receiverService.RunAsync(job => job.Initialize());
+        await _receiverService.RunAsync(job => job.StartDataReception());
+
+        await _senderService.RunAsync(job => job.Initialize());
+        await _senderService.RunAsync(job => job.SendServerRequest(1, 20));
+    }
+
+    public void OnDataReceived(object? sender, double value)
+    {
+        _results.Add(value);
+        StateHasChanged();
+    }
+
+    public async void CloseConnection()
+    {
+        if (_senderService != null)
+        {
+            await _senderService.RunAsync(job => job.FinishDataTransmission());
+            await _senderService.DisposeAsync();
+        }
+
+        if (_receiverService != null)
+        {
+            await _receiverService.RunAsync(job => job.FinishDataReception());
+            await _receiverService.UnRegisterEventListenerAsync(_taskHandle);
+            if (_taskHandle != null)
+                await _receiverService.UnRegisterEventListenerAsync(_taskHandle);
+            await _receiverService.DisposeAsync();
+        }
+
+        foreach (var worker in _workers)
+        {
+            await worker.DisposeAsync();
+        }
+        _workers.Clear();
+        _results.Clear();
+        StateHasChanged();
+    }
+}

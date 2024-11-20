@@ -20,6 +20,14 @@ namespace SignalRServer
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSignalR();
+            services.AddCors(options => options.AddPolicy("CorsPolicy",
+                policyBuilder =>
+                {
+                    policyBuilder.AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .SetIsOriginAllowed((host) => true)
+                        .AllowCredentials();
+                }));
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -36,6 +44,7 @@ namespace SignalRServer
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
+            app.UseCors("CorsPolicy");
 
             app.UseRouting();
 
